@@ -1,0 +1,61 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --color-bg-primary: #0f172a;
+    --color-bg-card: #1e293b;
+    --color-text-primary: #f8fafc;
+    --color-text-muted: #94a3b8;
+    --color-accent: #10b981;
+  }
+
+  body {
+    margin: 0;
+    padding: 0;
+    width: 380px;
+    height: 580px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    user-select: none;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.2);
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.4);
+  }
+}
+
+@keyframes pulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 25px rgba(16, 185, 129, 0.6);
+  }
+}
+
+@keyframes ringBell {
+  0%, 100% { transform: rotate(0deg); }
+  20%, 60% { transform: rotate(15deg); }
+  40%, 80% { transform: rotate(-15deg); }
+}
+
+.animate-ring-bell {
+  animation: ringBell 0.8s infinite ease-in-out;
+}
+
+.glow-pulse {
+  animation: pulseGlow 2s infinite ease-in-out;
+}

@@ -1,0 +1,50 @@
+{
+  "name": "chronozen-alarm-timer",
+  "description": "ChronoZen is a modern, lightweight alarm clock, focus countdown timer, and precision stopwatch browser extension with customizable sound alerts and snooze.",
+  "displayName": "ChronoZen - Smart Alarm Clock & Focus Timer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.22.0",
+  "keywords": [
+    "alarm",
+    "alarm-clock",
+    "timer",
+    "focus-timer",
+    "stopwatch",
+    "pomodoro",
+    "browser-extension",
+    "productivity",
+    "wxt",
+    "tailwindcss"
+  ],
+  "author": "ChronoZen Team",
+  "license": "MIT",
+  "scripts": {
+    "dev": "wxt",
+    "dev:firefox": "wxt -b firefox",
+    "build": "wxt build",
+    "build:firefox": "wxt build -b firefox",
+    "zip": "wxt zip",
+    "zip:firefox": "wxt zip -b firefox",
+    "compile": "tsc --noEmit",
+    "postinstall": "wxt prepare"
+  },
+  "dependencies": {
+    "lucide-react": "^1.16.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.1.18",
+    "@types/react": "^19.2.14",
+    "@types/react-dom": "^19.2.3",
+    "@wxt-dev/module-react": "^1.1.5",
+    "puppeteer-core": "^25.7.0",
+    "sharp": "^0.35.3",
+    "tailwindcss": "^4.1.18",
+    "typescript": "^5.9.3",
+    "web-ext": "^10.5.0",
+    "wxt": "^0.21.3"
+  }
+}
