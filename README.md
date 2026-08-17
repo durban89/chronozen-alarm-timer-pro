@@ -94,4 +94,4 @@ Generates `.output/chronozen-alarm-timer-1.0.0-chrome.zip` ready for upload to t
 
 ## 📄 Store Submission Metadata
 
-For ready-to-copy store descriptions, SEO keywords, and review compliance checklists, refer to [STORE_LISTING.md](file:///home/daniel/agy-test/chronozen-alarm-timer/STORE_LISTING.md).
+For ready-to-copy store descriptions, SEO keywords, and review compliance checklists, refer to [STORE_LISTING.md](./STORE_LISTING.md).
