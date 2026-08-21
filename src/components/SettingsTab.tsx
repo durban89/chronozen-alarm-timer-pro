@@ -121,6 +121,28 @@ export const SettingsTab: React.FC<SettingsTabProps> = ({
               className="w-full accent-emerald-500 h-1.5 bg-slate-700 rounded-lg cursor-pointer"
             />
           </div>
+
+          {/* Alert Page (background ringing) */}
+          <div className="flex items-center justify-between pt-1 border-t border-slate-800">
+            <div>
+              <div className="text-slate-200 font-medium">Open Alert Window</div>
+              <div className="text-[10px] text-slate-500 pr-2">
+                When an alarm fires while the popup is closed, open a small window that plays the sound
+              </div>
+            </div>
+            <button
+              onClick={() => onUpdateSettings({ ...settings, openAlertPage: !settings.openAlertPage })}
+              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ${
+                settings.openAlertPage ? 'bg-emerald-500' : 'bg-slate-700'
+              }`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ${
+                  settings.openAlertPage ? 'translate-x-4' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
         </div>
       </div>
 

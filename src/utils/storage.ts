@@ -7,6 +7,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   masterVolume: 85,
   soundEnabled: true,
   autoDismissSeconds: 60,
+  openAlertPage: true,
 };
 
 export const DEFAULT_TIMER: TimerState = {

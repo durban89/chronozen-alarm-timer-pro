@@ -169,6 +169,18 @@ class SoundSynthesizer {
   public isCurrentlyRinging(): boolean {
     return this.isRinging;
   }
+
+  public isContextSuspended(): boolean {
+    return !!this.audioCtx && this.audioCtx.state === 'suspended';
+  }
+
+  public resumeContext(): void {
+    if (this.audioCtx && this.audioCtx.state === 'suspended') {
+      this.audioCtx.resume().catch(() => {
+        // Resume rejected; keep waiting for a user gesture.
+      });
+    }
+  }
 }
 
 export const audioSynth = new SoundSynthesizer();

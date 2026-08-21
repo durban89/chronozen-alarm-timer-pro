@@ -1,6 +1,7 @@
 import type { AlarmItem, RingingEvent, TimerState } from '../src/types';
 import { StorageService } from '../src/utils/storage';
 import { calculateNextAlarmTime } from '../src/utils/time';
+import { ensureOffscreenRingDocument, stopOffscreenRing } from '../src/utils/offscreen-ring';
 
 export default defineBackground(() => {
   console.log('ChronoZen background service worker initialized');
@@ -132,6 +133,13 @@ async function handleAlarmTriggered(alarmId: string) {
 
   await StorageService.setRingingEvent(event);
 
+  // Make noise even when the popup is closed. When the popup is open it rings
+  // on its own via the storage listener.
+  const settings = await StorageService.getSettings();
+  if (settings.soundEnabled && !isPopupOpen()) {
+    await notifyInBackground(settings.openAlertPage);
+  }
+
   // Update icon badge to alert state
   browser.action.setBadgeText({ text: '⏰' });
   browser.action.setBadgeBackgroundColor({ color: '#ef4444' }); // Red
@@ -191,6 +199,11 @@ async function handleTimerCompleted() {
 
   await StorageService.setRingingEvent(event);
 
+  const settings = await StorageService.getSettings();
+  if (settings.soundEnabled && !isPopupOpen()) {
+    await notifyInBackground(settings.openAlertPage);
+  }
+
   browser.action.setBadgeText({ text: 'DONE' });
   browser.action.setBadgeBackgroundColor({ color: '#3b82f6' }); // Blue
 
@@ -216,13 +229,57 @@ async function snoozeAlarm(alarmId: string, minutes: number = 5) {
   });
 
   await StorageService.setRingingEvent(null);
+  stopOffscreenRing();
   browser.action.setBadgeText({ text: `+${minutes}m` });
   browser.action.setBadgeBackgroundColor({ color: '#f59e0b' }); // Amber
 }
 
 async function dismissActiveAlarm() {
   await StorageService.setRingingEvent(null);
+  stopOffscreenRing();
   await syncAllAlarmsToChrome();
+}
+
+function isPopupOpen(): boolean {
+  try {
+    return browser.extension.getViews({ type: 'popup' }).length > 0;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Make the alarm audible without the popup: open a small alert window
+ * (plays sound and shows dismiss/snooze), or fall back to the offscreen
+ * audio player when the alert page is disabled.
+ */
+async function notifyInBackground(openAlertPage: boolean): Promise<void> {
+  if (openAlertPage) {
+    await openAlertWindow();
+  } else {
+    await ensureOffscreenRingDocument();
+  }
+}
+
+async function openAlertWindow(): Promise<void> {
+  const url = browser.runtime.getURL('/alert.html');
+  try {
+    const existing = await browser.tabs.query({ url });
+    if (existing.length > 0) return; // already ringing in a window
+  } catch {
+    // URL query filtering unavailable; just create the window.
+  }
+  try {
+    await browser.windows.create({
+      url,
+      type: 'popup',
+      width: 420,
+      height: 480,
+      focused: true,
+    });
+  } catch {
+    await browser.tabs.create({ url });
+  }
 }
 
 async function setTimerAlarm(seconds: number) {
