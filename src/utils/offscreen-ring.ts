@@ -1,6 +1,3 @@
-import type { SoundType } from '../types';
-
-export const RING_START = 'CHRONOZEN_RING_START';
 export const RING_STOP = 'CHRONOZEN_RING_STOP';
 
 const OFFSCREEN_URL = '/offscreen.html';
@@ -9,7 +6,13 @@ function offscreenAvailable(): boolean {
   return typeof browser !== 'undefined' && !!browser.offscreen;
 }
 
-async function ensureOffscreenDocument(): Promise<void> {
+/**
+ * Make sure the offscreen audio player document exists. The player is
+ * storage-driven: it watches `chronozen_ringing` and plays/stops on its own,
+ * so no "start" message is needed (avoids createDocument message races).
+ */
+export async function ensureOffscreenRingDocument(): Promise<void> {
+  if (!offscreenAvailable()) return;
   try {
     const contexts = await browser.runtime.getContexts({
       contextTypes: [browser.runtime.ContextType.OFFSCREEN_DOCUMENT],
@@ -26,20 +29,6 @@ async function ensureOffscreenDocument(): Promise<void> {
     reasons: [browser.offscreen.Reason.AUDIO_PLAYBACK],
     justification: 'Plays ChronoZen alarm and timer ringing sounds while the popup is closed.',
   });
-}
-
-/**
- * Start the looping ring sound in the offscreen document.
- * Safe to call when the API is unavailable (Firefox / non-extension env): it no-ops.
- */
-export async function startOffscreenRing(sound: SoundType, volume: number): Promise<void> {
-  if (!offscreenAvailable()) return;
-  try {
-    await ensureOffscreenDocument();
-    await browser.runtime.sendMessage({ type: RING_START, sound, volume });
-  } catch (err) {
-    console.error('ChronoZen offscreen ring failed:', err);
-  }
 }
 
 /**

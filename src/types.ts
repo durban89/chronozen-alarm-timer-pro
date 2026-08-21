@@ -52,6 +52,7 @@ export interface AppSettings {
   masterVolume: number; // 0 to 100
   soundEnabled: boolean;
   autoDismissSeconds: number;
+  openAlertPage: boolean; // open a dedicated alert window when an alarm fires while the popup is closed
 }
 
 export interface RingingEvent {

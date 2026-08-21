@@ -1,7 +1,7 @@
 import type { AlarmItem, RingingEvent, TimerState } from '../src/types';
 import { StorageService } from '../src/utils/storage';
 import { calculateNextAlarmTime } from '../src/utils/time';
-import { startOffscreenRing, stopOffscreenRing } from '../src/utils/offscreen-ring';
+import { ensureOffscreenRingDocument, stopOffscreenRing } from '../src/utils/offscreen-ring';
 
 export default defineBackground(() => {
   console.log('ChronoZen background service worker initialized');
@@ -133,11 +133,11 @@ async function handleAlarmTriggered(alarmId: string) {
 
   await StorageService.setRingingEvent(event);
 
-  // Play the ring sound even when the popup is closed (offscreen audio player).
-  // When the popup is open it rings on its own via the storage listener.
+  // Make noise even when the popup is closed. When the popup is open it rings
+  // on its own via the storage listener.
   const settings = await StorageService.getSettings();
   if (settings.soundEnabled && !isPopupOpen()) {
-    await startOffscreenRing(event.sound, event.volume);
+    await notifyInBackground(settings.openAlertPage);
   }
 
   // Update icon badge to alert state
@@ -201,7 +201,7 @@ async function handleTimerCompleted() {
 
   const settings = await StorageService.getSettings();
   if (settings.soundEnabled && !isPopupOpen()) {
-    await startOffscreenRing(event.sound, event.volume);
+    await notifyInBackground(settings.openAlertPage);
   }
 
   browser.action.setBadgeText({ text: 'DONE' });
@@ -245,6 +245,40 @@ function isPopupOpen(): boolean {
     return browser.extension.getViews({ type: 'popup' }).length > 0;
   } catch {
     return false;
+  }
+}
+
+/**
+ * Make the alarm audible without the popup: open a small alert window
+ * (plays sound and shows dismiss/snooze), or fall back to the offscreen
+ * audio player when the alert page is disabled.
+ */
+async function notifyInBackground(openAlertPage: boolean): Promise<void> {
+  if (openAlertPage) {
+    await openAlertWindow();
+  } else {
+    await ensureOffscreenRingDocument();
+  }
+}
+
+async function openAlertWindow(): Promise<void> {
+  const url = browser.runtime.getURL('/alert.html');
+  try {
+    const existing = await browser.tabs.query({ url });
+    if (existing.length > 0) return; // already ringing in a window
+  } catch {
+    // URL query filtering unavailable; just create the window.
+  }
+  try {
+    await browser.windows.create({
+      url,
+      type: 'popup',
+      width: 420,
+      height: 480,
+      focused: true,
+    });
+  } catch {
+    await browser.tabs.create({ url });
   }
 }
 
