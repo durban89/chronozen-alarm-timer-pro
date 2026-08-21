@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { Bell, Check, Clock } from 'lucide-react';
 import type { RingingEvent } from '../types';
 import { audioSynth } from '../utils/audio';
+import { stopOffscreenRing } from '../utils/offscreen-ring';
 
 interface ActiveRingingModalProps {
   ringingEvent: RingingEvent;
@@ -17,6 +18,9 @@ export const ActiveRingingModal: React.FC<ActiveRingingModalProps> = ({
   soundEnabled,
 }) => {
   useEffect(() => {
+    // Popup takes over audio playback from the background offscreen player
+    // to avoid both playing at the same time.
+    stopOffscreenRing();
     if (soundEnabled) {
       audioSynth.startRinging(ringingEvent.sound, ringingEvent.volume);
     }

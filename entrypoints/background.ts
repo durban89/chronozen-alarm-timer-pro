@@ -1,6 +1,7 @@
 import type { AlarmItem, RingingEvent, TimerState } from '../src/types';
 import { StorageService } from '../src/utils/storage';
 import { calculateNextAlarmTime } from '../src/utils/time';
+import { startOffscreenRing, stopOffscreenRing } from '../src/utils/offscreen-ring';
 
 export default defineBackground(() => {
   console.log('ChronoZen background service worker initialized');
@@ -132,6 +133,13 @@ async function handleAlarmTriggered(alarmId: string) {
 
   await StorageService.setRingingEvent(event);
 
+  // Play the ring sound even when the popup is closed (offscreen audio player).
+  // When the popup is open it rings on its own via the storage listener.
+  const settings = await StorageService.getSettings();
+  if (settings.soundEnabled && !isPopupOpen()) {
+    await startOffscreenRing(event.sound, event.volume);
+  }
+
   // Update icon badge to alert state
   browser.action.setBadgeText({ text: '⏰' });
   browser.action.setBadgeBackgroundColor({ color: '#ef4444' }); // Red
@@ -191,6 +199,11 @@ async function handleTimerCompleted() {
 
   await StorageService.setRingingEvent(event);
 
+  const settings = await StorageService.getSettings();
+  if (settings.soundEnabled && !isPopupOpen()) {
+    await startOffscreenRing(event.sound, event.volume);
+  }
+
   browser.action.setBadgeText({ text: 'DONE' });
   browser.action.setBadgeBackgroundColor({ color: '#3b82f6' }); // Blue
 
@@ -216,13 +229,23 @@ async function snoozeAlarm(alarmId: string, minutes: number = 5) {
   });
 
   await StorageService.setRingingEvent(null);
+  stopOffscreenRing();
   browser.action.setBadgeText({ text: `+${minutes}m` });
   browser.action.setBadgeBackgroundColor({ color: '#f59e0b' }); // Amber
 }
 
 async function dismissActiveAlarm() {
   await StorageService.setRingingEvent(null);
+  stopOffscreenRing();
   await syncAllAlarmsToChrome();
+}
+
+function isPopupOpen(): boolean {
+  try {
+    return browser.extension.getViews({ type: 'popup' }).length > 0;
+  } catch {
+    return false;
+  }
 }
 
 async function setTimerAlarm(seconds: number) {
